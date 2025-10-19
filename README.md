@@ -1,6 +1,6 @@
 # 🤖 Bot de Telegram - Hola Mundo
 
-Bot desplegado en: **https://deplay-bott.onrender.com**
+**URL del Bot:** https://bottest-2n1h.onrender.com
 
 ## 📝 Funcionalidades
 
@@ -10,7 +10,6 @@ Bot desplegado en: **https://deplay-bott.onrender.com**
 - ✅ Fácil configuración
 - ✅ Despliegue gratuito en Render
 
-## 🔧 Configuración Rápida
+## 🚀 Configuración Rápida
 
-### 1. Configurar Webhook
-Visita este enlace para activar el bot:
+### 1. 🔗 Activar Webhook
