@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: telegram-bot-test
+    name: bottest-2n1h
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
