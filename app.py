@@ -7,7 +7,7 @@ import requests
 # Configuración
 app = Flask(__name__)
 TOKEN = '7709737711:AAHCN8hgp27p_LSw9rLqjQhw6LffGd0swME'
-RENDER_URL = 'https://deplay-bott.onrender.com'
+RENDER_URL = 'https://bottest-2n1h.onrender.com'
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -50,10 +50,10 @@ def webhook():
             # Responder "Hola mundo" a cualquier mensaje
             bot.send_message(
                 chat_id=chat_id,
-                text=f"Hola mundo 👋\nRecibí tu mensaje: '{user_text}'"
+                text="Hola mundo 👋"
             )
             
-            logger.info(f"Respuesta enviada a {user_name}")
+            logger.info(f"Respuesta 'Hola mundo' enviada a {user_name}")
             
         return 'ok'
     
@@ -101,7 +101,7 @@ def health_check():
             "status": "healthy",
             "bot_username": bot_info.username,
             "bot_name": bot_info.first_name,
-            "timestamp": "2024-01-01T00:00:00Z"
+            "webhook_url": f"{RENDER_URL}/webhook"
         })
     
     except Exception as e:
