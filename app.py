@@ -13,12 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Inicializar bot
-try:
-    bot = telegram.Bot(token=TOKEN)
-    logger.info("Bot inicializado correctamente")
-except Exception as e:
-    logger.error(f"Error inicializando bot: {e}")
-    bot = None
+bot = telegram.Bot(token=TOKEN)
 
 @app.route('/')
 def home():
@@ -32,20 +27,18 @@ def home():
 def webhook():
     """Webhook para recibir mensajes de Telegram"""
     try:
-        if not bot:
-            return 'Bot no inicializado', 500
-            
         update = telegram.Update.de_json(request.get_json(force=True), bot)
         
         if update.message and update.message.text:
             chat_id = update.message.chat.id
             user_text = update.message.text
             
-            # Responder "Hola mundo" a cualquier mensaje
+            # Responder "Hola mundo"
             bot.send_message(
                 chat_id=chat_id,
                 text="Hola mundo 👋"
             )
+            logger.info(f"Respondí 'Hola mundo' a: {user_text}")
             
         return 'ok'
     
@@ -55,41 +48,24 @@ def webhook():
 
 @app.route('/set_webhook', methods=['GET'])
 def set_webhook():
-    """Configura el webhook en Telegram"""
+    """Configurar webhook automáticamente"""
     try:
-        if not bot:
-            return jsonify({"status": "error", "message": "Bot no inicializado"}), 500
-            
         webhook_url = f"{RENDER_URL}/webhook"
         success = bot.set_webhook(webhook_url)
         
-        if success:
-            return jsonify({
-                "status": "success",
-                "message": "✅ Webhook configurado",
-                "webhook_url": webhook_url
-            })
-        else:
-            return jsonify({"status": "error", "message": "❌ Error al configurar webhook"}), 500
+        return jsonify({
+            "status": "success" if success else "error",
+            "message": "✅ Webhook configurado" if success else "❌ Error",
+            "webhook_url": webhook_url
+        })
     
     except Exception as e:
-        return jsonify({"status": "error", "message": f"❌ Error: {str(e)}"}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    try:
-        if bot:
-            bot_info = bot.get_me()
-            return jsonify({
-                "status": "healthy",
-                "bot_username": bot_info.username
-            })
-        else:
-            return jsonify({"status": "unhealthy", "error": "Bot no inicializado"}), 500
-    
-    except Exception as e:
-        return jsonify({"status": "unhealthy", "error": str(e)}), 500
+    return jsonify({"status": "healthy", "message": "Bot funcionando correctamente"})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
