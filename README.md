@@ -1,21 +1,16 @@
 # 🤖 Bot de Telegram - Hola Mundo
 
-Bot simple de Telegram que responde "Hola mundo" a cualquier mensaje.
+Bot desplegado en: **https://deplay-bott.onrender.com**
 
-## 🚀 Despliegue en Render
+## 📝 Funcionalidades
 
-1. Haz fork de este repositorio
-2. Ve a [Render](https://dashboard.render.com/)
-3. Conecta tu cuenta de GitHub
-4. Selecciona este repositorio
-5. Usa la configuración automática
+- ✅ **Responde "Hola mundo" a cualquier mensaje**
+- ✅ **Webhook configurado automáticamente** 
+- ✅ **Health check endpoint**
+- ✅ Fácil configuración
+- ✅ Despliegue gratuito en Render
 
-## ⚙️ Configuración
+## 🔧 Configuración Rápida
 
-- **TOKEN**: Token del bot de Telegram
-- **CHAT_ID**: Tu ID de chat personal
-- **INTERVALO**: 10 minutos
-
-## 🔧 Configurar Webhook
-
-Después del despliegue, visita:
+### 1. Configurar Webhook
+Visita este enlace para activar el bot:
