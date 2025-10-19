@@ -1,44 +1,59 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import telegram
 import os
 import logging
+import requests
 
-# Configuración de logging
+# Configuración
+app = Flask(__name__)
+TOKEN = '7709737711:AAHCN8hgp27p_LSw9rLqjQhw6LffGd0swME'
+RENDER_URL = 'https://deplay-bott.onrender.com'
+
+# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-
-# --- CONFIGURACIÓN ---
-TOKEN = '7709737711:AAHCN8hgp27p_LSw9rLqjQhw6LffGd0swME'
-CHAT_ID = '5217879590'
-INTERVALO = 60 * 10  # cada 10 minutos
-
-# Crear bot
+# Inicializar bot
 bot = telegram.Bot(token=TOKEN)
 
 @app.route('/')
 def home():
-    return "🤖 Bot de Telegram está funcionando correctamente!"
+    return jsonify({
+        "status": "active", 
+        "message": "🤖 Bot de Telegram - Hola Mundo",
+        "webhook_url": f"{RENDER_URL}/webhook",
+        "endpoints": {
+            "home": "/",
+            "webhook": "/webhook", 
+            "set_webhook": "/set_webhook",
+            "health": "/health"
+        }
+    })
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    """Maneja los mensajes entrantes de Telegram"""
+    """
+    Webhook para recibir mensajes de Telegram
+    Responde "Hola mundo" a cualquier mensaje
+    """
     try:
         update = telegram.Update.de_json(request.get_json(force=True), bot)
         
         # Verificar si es un mensaje de texto
         if update.message and update.message.text:
             chat_id = update.message.chat.id
-            text = update.message.text
+            user_text = update.message.text
+            user_name = update.message.from_user.first_name
             
-            logger.info(f"Mensaje recibido: {text}")
+            logger.info(f"Mensaje de {user_name}: {user_text}")
             
             # Responder "Hola mundo" a cualquier mensaje
             bot.send_message(
                 chat_id=chat_id,
-                text="Hola mundo 👋"
+                text=f"Hola mundo 👋\nRecibí tu mensaje: '{user_text}'"
             )
+            
+            logger.info(f"Respuesta enviada a {user_name}")
             
         return 'ok'
     
@@ -48,25 +63,68 @@ def webhook():
 
 @app.route('/set_webhook', methods=['GET'])
 def set_webhook():
-    """Configura el webhook en Telegram"""
+    """Configura el webhook en Telegram automáticamente"""
     try:
-        # Obtener la URL base de Render
-        webhook_url = f"https://{request.host}/webhook"
+        webhook_url = f"{RENDER_URL}/webhook"
         
         # Configurar webhook
         success = bot.set_webhook(webhook_url)
         
         if success:
-            return f"✅ Webhook configurado correctamente: {webhook_url}"
+            logger.info(f"Webhook configurado: {webhook_url}")
+            return jsonify({
+                "status": "success",
+                "message": "✅ Webhook configurado correctamente",
+                "webhook_url": webhook_url
+            })
         else:
-            return "❌ Error al configurar webhook"
+            return jsonify({
+                "status": "error", 
+                "message": "❌ Error al configurar webhook"
+            }), 500
     
     except Exception as e:
-        return f"❌ Error: {e}"
+        logger.error(f"Error configurando webhook: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"❌ Error: {str(e)}"
+        }), 500
 
-@app.route('/health')
+@app.route('/health', methods=['GET'])
 def health_check():
-    return "✅ Bot saludable"
+    """Health check endpoint para verificar el estado del bot"""
+    try:
+        # Verificar que el bot esté funcionando
+        bot_info = bot.get_me()
+        
+        return jsonify({
+            "status": "healthy",
+            "bot_username": bot_info.username,
+            "bot_name": bot_info.first_name,
+            "timestamp": "2024-01-01T00:00:00Z"
+        })
+    
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e)
+        }), 500
+
+@app.route('/test', methods=['GET'])
+def test_message():
+    """Endpoint para probar el envío de mensajes"""
+    try:
+        chat_id = '5217879590'  # Tu chat_id
+        bot.send_message(
+            chat_id=chat_id,
+            text="🔧 Mensaje de prueba desde el bot desplegado en Render"
+        )
+        return jsonify({"status": "success", "message": "Mensaje de prueba enviado"})
+    
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
