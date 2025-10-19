@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import telegram
+import telebot
 import os
 import logging
 
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Inicializar bot
-bot = telegram.Bot(token=TOKEN)
+bot = telebot.TeleBot(TOKEN)
 
 @app.route('/')
 def home():
@@ -27,17 +27,14 @@ def home():
 def webhook():
     """Webhook para recibir mensajes de Telegram"""
     try:
-        update = telegram.Update.de_json(request.get_json(force=True), bot)
+        json_data = request.get_json()
         
-        if update.message and update.message.text:
-            chat_id = update.message.chat.id
-            user_text = update.message.text
+        if 'message' in json_data and 'text' in json_data['message']:
+            chat_id = json_data['message']['chat']['id']
+            user_text = json_data['message']['text']
             
             # Responder "Hola mundo"
-            bot.send_message(
-                chat_id=chat_id,
-                text="Hola mundo 👋"
-            )
+            bot.send_message(chat_id, "Hola mundo 👋")
             logger.info(f"Respondí 'Hola mundo' a: {user_text}")
             
         return 'ok'
@@ -51,11 +48,12 @@ def set_webhook():
     """Configurar webhook automáticamente"""
     try:
         webhook_url = f"{RENDER_URL}/webhook"
-        success = bot.set_webhook(webhook_url)
+        bot.remove_webhook()
+        success = bot.set_webhook(url=webhook_url)
         
         return jsonify({
-            "status": "success" if success else "error",
-            "message": "✅ Webhook configurado" if success else "❌ Error",
+            "status": "success",
+            "message": "✅ Webhook configurado",
             "webhook_url": webhook_url
         })
     
@@ -66,6 +64,15 @@ def set_webhook():
 def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "message": "Bot funcionando correctamente"})
+
+@app.route('/test', methods=['GET'])
+def test_bot():
+    """Probar el bot enviando un mensaje"""
+    try:
+        bot.send_message('5217879590', '✅ Bot funcionando correctamente en Render!')
+        return jsonify({"status": "success", "message": "Mensaje de prueba enviado"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
